@@ -48,3 +48,24 @@ function mk_fs {
 function do_bootstrap {
 	sudo multistrap -d chroot/ -f installer.conf
 }
+
+function do_env {
+	if [ ! -d chroot ] ; then
+		mkdir -p chroot/boot
+	fi
+
+	kpartx -as $IMG
+	mount /dev/mapper/loop0p1 chroot/boot/
+	mount /dev/mapper/loop0p2 chroot/
+
+	if [ ! -a chroot/boot/config.txt ] ; then
+		touch chroot/boot/config.txt
+	fi
+	if [ ! -a chroot/boot/cmdline.txt ] ; then
+		touch chroot/boot/cmdline.txt
+	fi
+
+}
+
+mk_image
+mk_fs
