@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 ########################################################
 
-release=jessie				# debian release
-mirror=						# debian mirror to use
-imagesize=5					# image size in mb
-bootsize=2					# boot partition size in mb
+release=jessie					# debian release
+mirror=							# debian mirror to use
+imagesize=5						# image size in mb
+bootsize=2						# boot partition size in mb
 
 ########################################################
 set -e
@@ -43,4 +43,8 @@ function mk_fs {
 	mkfs.vfat /dev/mapper/loop0p1
 	mkfs.ext4 /dev/mapper/loop0p2
 	kpartx -d $IMG
+}
+
+function do_bootstrap {
+	sudo multistrap -d chroot/ -f installer.conf
 }
