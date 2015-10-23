@@ -3,8 +3,8 @@
 
 release=jessie					# debian release
 mirror=							# debian mirror to use
-imagesize=5						# image size in mb
-bootsize=2						# boot partition size in mb
+imagesize=1024					# image size in mb
+bootsize=128					# boot partition size in mb
 
 ########################################################
 set -e
@@ -42,21 +42,31 @@ function mk_fs {
 	kpartx -as $IMG
 	mkfs.vfat /dev/mapper/loop0p1
 	mkfs.ext4 /dev/mapper/loop0p2
+	kpartx -s $IMG
 	kpartx -d $IMG
 }
 
 function do_bootstrap {
-	sudo multistrap -d chroot/ -f installer.conf
+	wget -q http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
+	apt-key add raspberrypi.gpg.key
+	apt-key update
+
+	multistrap -d chroot/ -f installer.conf
 }
 
 function do_env {
-	if [ ! -d chroot ] ; then
-		mkdir -p chroot/boot
-	fi
-
 	kpartx -as $IMG
-	mount /dev/mapper/loop0p1 chroot/boot/
+
+	if [ ! -d chroot ] ; then
+		mkdir chroot/
+	fi
 	mount /dev/mapper/loop0p2 chroot/
+
+    if [ ! -d chroot/boot ] ; then
+        mkdir chroot/boot/
+    fi
+	mount /dev/mapper/loop0p1 chroot/boot/
+
 
 	if [ ! -a chroot/boot/config.txt ] ; then
 		touch chroot/boot/config.txt
@@ -69,3 +79,5 @@ function do_env {
 
 mk_image
 mk_fs
+do_env
+do_bootstrap
