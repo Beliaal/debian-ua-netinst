@@ -51,8 +51,11 @@ function mk_fs {
 	kpartx -d $IMG
 }
 
+function do_cdebootstrap {
+	cdebootstrap --flavour=minimal --allow-unauthenticated --foreign --arch=armhf $RELEASE rootfs/ $MIRROR
+}
+
 function do_bootstrap {
-	echo $MIRROR
 	debootstrap --variant=minbase --foreign --arch=armhf $RELEASE rootfs/ $MIRROR
 
 	DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -184,7 +187,6 @@ function bootscripts {
 		echo "deb http://ftp.debian.org/debian/ jessie-updates contrib non-free" >> rootfs/etc/apt/sources.list.d/additional.list
 		echo "deb-src http://ftp.debian.org/debian/ jessie-updates contrib non-free" >> rootfs/etc/apt/sources.list.d/additional.list
 	fi
-
 }
 
 
