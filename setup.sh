@@ -2,22 +2,21 @@
 ########################################################
 
 release=jessie					# debian release
-mirror=							# debian mirror to use
+mirror=http://ftp.debian.org/debian/		# debian mirror to use
 imagesize=1024					# image size in mb
-bootsize=128					# boot partition size in mb
+bootsize=64					# boot partition size in mb
 
 ########################################################
 set -e
 
 function mk_image {
 	IMG=debian-$release-ua-netinst-`date +%Y%m%d`.img
-	rm -f $IMG
-	rm -f $IMG.bz2
-	rm -f $IMG.xz
+	rm -f $IMG  > /dev/null 2>&1
+	rm -f $IMG.bz2  > /dev/null 2>&1
+	rm -f $IMG.xz  > /dev/null 2>&1
 
 	bootsize="+$bootsize"M
-
-	dd if=/dev/zero of=$IMG bs=1M count=$imagesize
+	dd if=/dev/zero of=$IMG bs=1M count=$imagesize  > /dev/null 2>&1
 
 # scripted. do not indent!
 fdisk $IMG <<EOF
@@ -47,37 +46,65 @@ function mk_fs {
 }
 
 function do_bootstrap {
-	wget -q http://archive.raspberrypi.org/debian/raspberrypi.gpg.key
-	apt-key add raspberrypi.gpg.key
-	apt-key update
+	debootstrap --foreign --arch=armhf jessie rootfs/ $mirror
 
-	multistrap -d chroot/ -f installer.conf
+	DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
+	LC_ALL=C LANGUAGE=C LANG=C chroot rootfs/ /debootstrap/debootstrap --second-stage
+}
+
+function do_pre {
+	apt-get update
+
+	mkdir tmp
+	cd tmp
+
+	wget http://ftp.debian.org/debian/pool/main/d/debootstrap/debootstrap_1.0.75_all.deb
+	dpkg -i debootstrap_1.0.75_all.deb
+	apt-get install kpartx
+
+	cd ..
+	rm -fr tmp
+
+	if [ ! -d rootfs ] ; then
+                mkdir rootfs/
+        fi
 }
 
 function do_env {
 	kpartx -as $IMG
 
-	if [ ! -d chroot ] ; then
-		mkdir chroot/
+	mount /dev/mapper/loop0p2 rootfs/
+
+	if [ ! -d rootfs/boot ] ; then
+		mkdir rootfs/boot/
 	fi
-	mount /dev/mapper/loop0p2 chroot/
-
-    if [ ! -d chroot/boot ] ; then
-        mkdir chroot/boot/
-    fi
-	mount /dev/mapper/loop0p1 chroot/boot/
+	mount /dev/mapper/loop0p1 rootfs/boot/
 
 
-	if [ ! -a chroot/boot/config.txt ] ; then
-		touch chroot/boot/config.txt
+	if [ ! -a rootfs/boot/config.txt ] ; then
+		touch rootfs/boot/config.txt
 	fi
-	if [ ! -a chroot/boot/cmdline.txt ] ; then
-		touch chroot/boot/cmdline.txt
+	if [ ! -a rootfs/boot/cmdline.txt ] ; then
+		touch rootfs/boot/cmdline.txt
 	fi
-
 }
 
-mk_image
-mk_fs
+
+
+
+
+
+
+
+
+
+
+
+
+#################### The part that actually runs ####################
+
+do_pre		> /dev/null 2>&1
+mk_image	> /dev/null 2>&1
+mk_fs		> /dev/null 2>&1
 do_env
 do_bootstrap
