@@ -1,0 +1,9 @@
+deb http://ftp.debian.org/debian/ jessie contrib non-free
+deb-src http://ftp.debian.org/debian/ jessie contrib non-free
+
+deb http://security.debian.org/ jessie/updates contrib non-free
+deb-src http://security.debian.org/ jessie/updates contrib non-free
+
+# jessie-updates, previously known as 'volatile'
+deb http://ftp.debian.org/debian/ jessie-updates contrib non-free
+deb-src http://ftp.debian.org/debian/ jessie-updates contrib non-free

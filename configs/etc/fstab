@@ -1,0 +1,4 @@
+proc			/proc	proc	defaults	0	0
+LABEL=rootfs	/		ext4	defaults,noatime,errors=remount-ro	0	0
+LABEL=boot		/boot	vfat	defaults	0	0
+/var/swap		none	swap	defaults	0	0
