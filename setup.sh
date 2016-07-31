@@ -2,16 +2,42 @@
 ########################################################
 
 RELEASE=jessie								# debian release
-MIRROR=http://ftp.debian.org/debian/		# debian mirror to use
+MIRROR=http://ftp.debian.org/debian/					# debian mirror to use
 RASPBERRY=no								# "yes" for raspberry pi mirror, "no" for single partition standard debian
 IMGSIZE=2048								# image size in mb
-BOOTSIZE=64									# boot partition size in mb (only for rasberry pi)
+BOOTSIZE=64								# boot partition size in mb (only for rasberry pi)
 APTXTRAS=yes								# if yes, add contrib and non-free to the list of repos
-QUIET=no									# generate output for debug....
+QUIET=no								# generate output for debug....
 
 ########################################################
 
 set -e
+
+function mk_image {
+	IMG=debian-$RELEASE-ua-netinst-`date +%Y%m%d`.img
+	rm -f $IMG > /dev/null 2>&1
+	rm -f $IMG.bz2 > /dev/null 2>&1
+	rm -f $IMG.xz > /dev/null 2>&1
+	dd if=/dev/zero of=$IMG bs=1M count=$IMGSIZE > /dev/null 2>&1
+
+# scripted. do not indent!
+fdisk $IMG <<EOF
+n
+p
+1
+
+$BOOTSIZE
+t
+b
+n
+p
+2
+
+
+w
+EOF
+# end script
+}
 
 
 function rpi_image {
@@ -198,7 +224,11 @@ BASEDIR=$PWD
 
 if [ $QUIET = "yes" ] ; then
 	do_pre		> /dev/null 2>&1
-	mk_image	> /dev/null 2>&1
+	if [ $RASPBERRY = "yes" ] ; then
+		image_rpi	> /dev/null 2>&1
+	else
+		image_mk	> /dev/null 2>&1
+	fi
 	mk_fs		> /dev/null 2>&1
 	do_env		> /dev/null 2>&1
 	do_bootstrap	> /dev/null 2>&1
