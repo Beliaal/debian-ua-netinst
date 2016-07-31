@@ -1,21 +1,20 @@
 #!/usr/bin/env bash
 ########################################################
 
-RELEASE=jessie					# debian release
+RELEASE=jessie								# debian release
 MIRROR=http://ftp.debian.org/debian/		# debian mirror to use
-IMGSIZE=1024					# image size in mb
-BOOTSIZE=64					# boot partition size in mb
-APTXTRAS=yes					# if yes, add contrib and non-free to the list of repos
-QUIET=no					# generate output from the routines
+RASPBERRY=no								# "yes" for raspberry pi mirror, "no" for single partition standard debian
+IMGSIZE=2048								# image size in mb
+BOOTSIZE=64									# boot partition size in mb (only for rasberry pi)
+APTXTRAS=yes								# if yes, add contrib and non-free to the list of repos
+QUIET=no									# generate output for debug....
 
 ########################################################
 
 set -e
 
 
-
-
-function mk_image {
+function rpi_image {
 	IMG=debian-$RELEASE-ua-netinst-`date +%Y%m%d`.img
 	rm -f $IMG > /dev/null 2>&1
 	rm -f $IMG.bz2 > /dev/null 2>&1
